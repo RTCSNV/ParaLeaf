@@ -9,7 +9,6 @@ var bootleaf = {
   "identifyLayers": [],
   "layers": [],
   "wfsLayers": [],
-  "labelLayers": [],
   "identifyLayerHeadings": [],
   "clickTolerance": 5,
   "currentTool": null,
@@ -24,7 +23,7 @@ var bootleaf = {
     {"id": "MapboxSatelliteStreets", "type": "mapbox", "theme": "streets-satellite", "label": "Streets with Satellite (MapBox)"},
     {"id": "MapboxHighContrast", "type": "mapbox", "theme": "high-contrast", "label": "High-contrast (MapBox)"},
     {"id": "esriStreets", "type": "esri", "theme": "Streets", "label": "Streets (ArcGIS)"},
-    {"id": "esriGray", "type": "esri", "theme": "Gray", "label": "Light gray (ArcGIS)"}, 
+    {"id": "esriGray", "type": "esri", "theme": "Gray", "label": "Light gray (ArcGIS)"},
     {"id": "esriTopographic", "type": "esri", "theme": "Topograhic", "label": "Topographics (ArcGIS)"},
     {"id": "esriImagery", "type": "esri", "theme": "Imagery", "label": "Satellite (ArcGIS)"},
     {"id": "esriShadedRelief", "type": "esri", "theme": "ShadedRelief", "label": "Shaded relief (ArcGIS)"},
@@ -134,7 +133,7 @@ $(document).ready(function(){
           return marker;
         };
       }
-      
+
       if (layerType === "agsFeatureLayer") {
 
         // If the config file includes 'outFields', convert it to 'fields' - a simple listing of field names
@@ -258,11 +257,6 @@ $(document).ready(function(){
         layer.layerConfig = layerConfig;
         bootleaf.wfsLayers.push(layer);
 
-        // If the layer has labels configured, create an empty label layer. It will be populated later
-        if (layerConfig.label !== undefined){
-          buildLabelLayer(layerConfig);
-        }
-        
       } else if (layerType === "tileLayer") {
         layer = L.tileLayer(layerConfig.url, layerConfig);
       } else if (layerType === "geoJSON") {
@@ -276,12 +270,6 @@ $(document).ready(function(){
             jqXHR.layerConfig = layerConfig;
           },
           success: function(data, textStatus, jqXHR) {
-
-            // If the layer has labels configured, create an empty label layer. It will be populated later
-            if (jqXHR.layerConfig.label !== undefined){
-              buildLabelLayer(jqXHR.layerConfig);
-            }
-
             // Handle cluster/normal layers differently
 
             if (jqXHR.layerConfig.icon !== undefined){
@@ -308,15 +296,9 @@ $(document).ready(function(){
                 jqXHR.layer.addData(data);
               });
             }
-            
+
             jqXHR.layer.layerConfig = jqXHR.layerConfig;
             addLayer(jqXHR.layer);
-
-            // Display labels if configured for this layer
-            if (jqXHR.layer.layerConfig.label !== undefined){
-              createLabels(jqXHR.layer.layerConfig, data)
-            }
-
 
           },
           error: function(jqXHR, textStatus, error) {
@@ -344,13 +326,13 @@ $(document).ready(function(){
           query.layerId = layerConfig.id;
           queries.push(query);
         }
-        bootleaf.queryTasks.push({"layerName": layerConfig.name, "layerId": layerConfig.id, "queries": queries});                    
+        bootleaf.queryTasks.push({"layerName": layerConfig.name, "layerId": layerConfig.id, "queries": queries});
       }
 
       if (layer !== undefined) {
         // Persist the layer's config options with the layer itself
         layer.layerConfig = layerConfig;
-        if (!layerConfig.hidden) {addLayer(layer);} 
+        if (!layerConfig.hidden) {addLayer(layer);}
       }
 
     } catch(err) {
@@ -403,7 +385,7 @@ $(document).ready(function(){
   });
   for (var wkid in bootleaf.projections){
     var def = bootleaf.projections[wkid];
-    proj4.defs('EPSG:' + wkid, def);    
+    proj4.defs('EPSG:' + wkid, def);
   }
 
    /* Highlight layer, used for Identify and Query results */
@@ -448,13 +430,12 @@ $(document).ready(function(){
     if(config.controls.TOC){
       bootleaf.tocOptions['position'] = config.controls.TOC.position || 'topright';
       bootleaf.tocOptions['collapsed'] = config.controls.TOC.collapsed || false;
-      bootleaf.tocOptions['toggleAll'] = config.controls.TOC.toggleAll || false;
-      
+
       bootleaf.TOCcontrol = L.control.groupedLayers(null, bootleaf.layerTOC, bootleaf.tocOptions);
       bootleaf.map.addControl(bootleaf.TOCcontrol);
     }
 
-    // History control  
+    // History control
     if (config.controls.history) {
       try{
         bootleaf.historyControl = new L.HistoryControl(config.controls.history).addTo(bootleaf.map);
@@ -468,9 +449,7 @@ $(document).ready(function(){
     if(config.controls.leafletGeocoder !== undefined) {
 
       var geocoder = L.Control.Geocoder.nominatim(config.controls.leafletGeocoder);
-      if(config.controls.leafletGeocoder.type === "Harmony") {
-        geocoder = L.Control.Geocoder.harmony(config.controls.leafletGeocoder);
-      } else if (config.controls.leafletGeocoder.type === "OpenStreetMap") {
+      if (config.controls.leafletGeocoder.type === "OpenStreetMap") {
         geocoder = L.Control.Geocoder.nominatim(config.controls.leafletGeocoder);
       } else if (config.controls.leafletGeocoder.type === "Google") {
         geocoder = L.Control.Geocoder.google(config.controls.leafletGeocoder);
@@ -490,6 +469,23 @@ $(document).ready(function(){
       }).addTo(bootleaf.map);
 
     }
+
+
+  var printer = L.easyPrint({
+   //   tileLayer: layer,
+      sizeModes: ['Current', 'A4Landscape', 'A4Portrait'],
+      filename: 'myMap',
+      exportOnly: true,
+      hideControlContainer: true
+  }).addTo(bootleaf.map);
+
+  function manualPrint () {
+      printer.printMap('CurrentSize', 'MyManualPrint')
+  }
+  $('#print-btn').on('click',function (e) {
+      // e.preventDefault(); // disable the default form submit event
+      manualPrint();
+  });
 
     if (config.controls.bookmarks) {
       var bookmarkOptions = {
@@ -560,8 +556,8 @@ $(document).ready(function(){
 
   } else {
     $("#basemapDropdown").hide();
-  } 
-  
+  }
+
   // Hide the loading indicator
   // TODO - show the loading indicator when something happens
   $("#loading").hide();
@@ -573,33 +569,26 @@ $(document).ready(function(){
     $("#liQueryWidget").removeClass('disabled');
   }
 
-  // Enable Identify if any identifiable layers are present
-  updateIdentifyLayers();
-
   // Set the active tool, if applicable and supported by the current layers
   if (config.activeTool !== undefined){
     $(".liMapTools").removeClass("active");
+    $('*[data-tool="' +  config.activeTool + '"]').addClass("active");
 
     if (config.activeTool === 'identify') {
       if (bootleaf.identifyLayers && bootleaf.identifyLayers.length > 0){
         configureIdentifyTool();
-        $('*[data-tool="' +  config.activeTool + '"]').addClass("active");
       }
-     
     } else if (config.activeTool === 'coordinates') {
-      configureCoordinatesTool();
-      $('*[data-tool="' +  config.activeTool + '"]').addClass("active");
+        configureCoordinatesTool();
     } else if (config.activeTool === 'queryWidget'){
       if (bootleaf.queryTasks && bootleaf.queryTasks.length > 0){
         configureQueryWidget();
-        $('*[data-tool="' +  config.activeTool + '"]').addClass("active");
       }
     }
     // TODO - add more tools here, with corresponding configureXXXtool functions
 
   } else {
     $("#sidebar").hide("slow");
-    $(".liMapTools").removeClass("active");
   }
 
   // Run custom code after the map has loaded
@@ -626,6 +615,7 @@ function reorderLayers(){
 function addLayer(layer){
 
   // Once the layer has been created, add it to the map and the applicable TOC category
+
   var layerConfig = layer.layerConfig;
   layer.name = layerConfig.name || layerConfig.id || "unknown layer name";
 
@@ -699,7 +689,7 @@ function addLayer(layer){
   if (layer.tocState === undefined){
     layer.tocState = "off";
   }
-  bootleaf.layers.push(layer);   
+  bootleaf.layers.push(layer);
 
 }
 
@@ -717,6 +707,12 @@ function setBasemap(basemap){
     var esriTheme = basemap.theme || "Streets";
     bootleaf.basemapLayer = L.esri.basemapLayer(esriTheme, options);
   } else if (basemap.type === 'tiled'){
+    bootleaf.basemapLayer = L.tileLayer(basemap.url, options);
+  } else if (basemap.type === 'bing'){
+    var options = {
+      "bingMapsKey": config.bing_key,
+      "imagerySet": basemap.id
+    }
     bootleaf.basemapLayer = L.tileLayer(basemap.url, options);
   } else if (basemap.type === 'mapbox'){
     var mapboxKey = config.mapboxKey || "";
@@ -814,7 +810,7 @@ function formatValue(value, field){
       } catch(err) {
         console.log("Please ensure that Moment.js has been included");
       }
-      
+
     }
     if (field.thousands !== undefined) {
       value = addThousandsSeparator(value);
@@ -901,7 +897,7 @@ function configureQueryWidget(){
       });
 
       var html = bootleaf.queryTemplate(layerNames);
-      resetSidebar("Query", html);
+      resetSidebar("Query Widget", html);
 
       // Seed the query field dropdown based on the selected layer
       updateQueryFields($("#queryWidgetLayer option:selected" ).val());
@@ -916,14 +912,14 @@ function configureQueryWidget(){
         } else {
           $("#drawQueryWidget").hide();
           bootleaf.queryPolygon.clearLayers()
-        }    
+        }
       });
       $('#chkQueryWithinMapExtent').change(function() {
         if($(this).is(":checked")) {
           $("#chkQueryWithinPolygon").attr('checked', false);
           $("#drawQueryWidget").hide();
           bootleaf.queryPolygon.clearLayers()
-        }    
+        }
       });
 
     } else {
@@ -936,7 +932,7 @@ function configureQueryWidget(){
     $("#sidebarContents").html("<p><span class='info'>There are no query-able layers in the map</span></p>");
     $("#btnRunQuery").off('click', runQueryWidget);
     $("#liQueryWidget").addClass('disabled');
-  }  
+  }
 
   // Update the query field names when the query layer selection changes
   $("#queryWidgetLayer").off("change")
@@ -972,10 +968,12 @@ function updateQueryFields(layerId){
         var fieldName = query.name;
         var fieldAlias = query.alias || fieldName;
         var fieldType = query.type || "text";
-        var fieldDefaultOperator = query.defaultOperator || "=";
-        var option = '<option value="' + fieldName + '" data-fieldtype="';
-        option += fieldType + '" + data-defaultoperator ="' + fieldDefaultOperator + '"';
-        option += '>' + fieldAlias + "</option>"        
+        var option = '<option value="' + fieldName + '" data-fieldtype="' + fieldType + '"';
+        if (j===0){
+          option += " selected='selected'";
+        }
+        option += '>' + fieldAlias + "</option>"
+
         fieldOptions.push(option);
       }
     }
@@ -984,17 +982,16 @@ function updateQueryFields(layerId){
 
   // Update the query operator when the query field selection changes
   updateQueryOperator($("#queryWidgetField option:selected")[0]);
-  $("#queryWidgetField").off("change");
+   $("#queryWidgetField").off("change");
   $("#queryWidgetField").on("change", function(){
     updateQueryOperator(this.options[this.selectedIndex]);
   });
-}  
+}
 
 function updateQueryOperator(option){
   // Update the Operators dropdown on the Query widget with the applicable options for this field type
   $("#queryWidgetOperator").empty();
   $("#queryWidgetValue").val("");
-  var defaultOperator = option.dataset['defaultoperator'] || '=';
 
   var operators = [
     {"value": "=", "alias": "is"},
@@ -1016,12 +1013,7 @@ function updateQueryOperator(option){
 
   var operatorOptions = $.map( operators, function( val, i ) {
     var alias = val.alias || val.value;
-    var opt = '<option value="' + val.value + '"';
-    if (defaultOperator === val.value) {
-      opt += " selected='selected'";
-    }
-    opt += '>' + alias + "</option>"
-    return opt;
+    return '<option value="' + val.value + '">' + alias + "</option>";
   });
   $("#queryWidgetOperator").append(operatorOptions);
 
@@ -1044,7 +1036,7 @@ function runQueryWidget() {
   for(var layerIdx=0; layerIdx < config.layers.length; layerIdx++){
     var layer = config.layers[layerIdx];
     if (layer.id === layerId){
-      
+
       if (layer.type === 'agsFeatureLayer'){
         if(layer.url[layer.url.length - 1] === "/") {
           queryUrl = layer.url + "query?";
@@ -1128,7 +1120,7 @@ function runQueryWidget() {
     if (fieldType === 'numeric'){
       query = fieldName + operator + queryText;
     } else {
-      
+
       if(queryText === "*" || queryText === "") {
         if (where === undefined) {
           query = "1=1";
@@ -1190,7 +1182,7 @@ function runQueryWidget() {
       },
       error: function(jqXHR, textStatus, error) {
         handleQueryError("There was a problem running the query")
-        
+
       }
     });
 
@@ -1212,7 +1204,7 @@ function runQueryWidget() {
         queryData['propertyName'] += "," + outFields[oIdx].name;
       }
     }
-    
+
     var query;
     if (fieldType === 'numeric'){
       query = fieldName + operator + queryText;
@@ -1274,9 +1266,9 @@ function runQueryWidget() {
       },
       error: function() {
         handleQueryError("There was a problem running the query")
-        
+
       }
-    }); 
+    });
 
   }
 
@@ -1301,13 +1293,10 @@ function handleQueryResults(data, layerConfig, outFields){
   }
   if (data.spatialReference !== undefined && data.spatialReference.wkid !== undefined){
     bootleaf.queryResults["wkid"] = data.spatialReference.wkid;
-  } else if (data.crs !== undefined && data.crs.properties !== undefined && data.crs.properties.name !== undefined) {
-    var crs = data.crs.properties.name;
-    bootleaf.queryResults["wkid"] = parseInt(crs.substr(crs.length - 4));
   }
 
   // Add the column names to the output table
-  var thead = "<thead><tr>" 
+  var thead = "<thead><tr>"
   thead += $.map(outFields, function( field, i ) {
     var name = field.alias || field.name;
     return "<th>" + name + "</th>";
@@ -1360,7 +1349,7 @@ function handleQueryResults(data, layerConfig, outFields){
               feature.properties[field.alias] = val;
               if (feature.properties[field.name] !== undefined){
                 delete feature.properties[field.name];
-              } 
+              }
             }
           }
         }
@@ -1383,7 +1372,7 @@ function handleQueryResults(data, layerConfig, outFields){
   try{
     var dtConfig = {
       "dom": '<"top"if<"clear">>rt<"bottom"p<"clear">>',
-      "bFilter" : false,               
+      "bFilter" : false,
       "bLengthChange": false,
       "searching": true,
       "language": {
@@ -1425,7 +1414,7 @@ function handleQueryResults(data, layerConfig, outFields){
               extend: 'csvHtml5',
               text: 'Download results as CSV'
           }]
-      }); 
+      });
     table.buttons( 0, null ).containers().appendTo( $('#exportButtons') );
   } catch(err){
     console.log("There was a problem enabling Data Tables for the Query Widget buttons", err)
@@ -1447,7 +1436,7 @@ function resetQueryOutputTable(){
 /**************************************************************************************************/
 
 function configureIdentifyTool(){
-  
+
   resetSidebar("Identify results");
   $("#sidebar").show("slow");
   switchOffTools();
@@ -1481,14 +1470,13 @@ function disableIdentify(){
 function runIdentifies(evt) {
   // Clear the results from any previous Identifies
   bootleaf.identifyResponse = {};
-  bootleaf.identifyCounter = {};
   bootleaf.identifyLayerHeadings = [];
   if (bootleaf.identifyLayers.length ===0) {
     $("#sidebarContents").html("<p><span class='info'>There are no identifiable layers currently visible on the map</span></p>");
     $("#liIdentify").addClass("disabled");
     $("#ajaxLoading").hide();
     return;
-  } 
+  }
   $("#sidebarContents").html('<span id="ajaxLoading"></span>');
   $("#ajaxLoading").show();
   // There is an option not to show the Identify marker
@@ -1512,7 +1500,7 @@ function runIdentifies(evt) {
       var layers = idLayer.layerConfig.layers || [];
 
       var data = {
-        "srs": bootleaf.mapWkid || 4326,
+        "sr": bootleaf.mapWkid || 4326,
         "tolerance": bootleaf.clickTolerance || 5,
         "maxAllowableOffset": idLayer.layerConfig.identify.maxAllowableOffset || 0.1,
         "returnGeometry": true,
@@ -1559,20 +1547,10 @@ function runIdentifies(evt) {
                 bootleaf.identifyResponse[layerId] = {
                   "config": layerConfig
                 };
+
               }
               if (bootleaf.identifyResponse[layerId][value] === undefined && result.layerName === layerName) {
-                if (layerConfig.identify.maxFeatures !== undefined){
-                  if (bootleaf.identifyCounter[layerName] === undefined) {
-                    bootleaf.identifyCounter[layerName] = 1;
-                  } else {
-                    bootleaf.identifyCounter[layerName] += 1;
-                  }
-                  if (bootleaf.identifyCounter[layerName] <= layerConfig.identify.maxFeatures) {
-                    displayIdentifyResult(layerId, layerName, layerConfig, result);
-                  }
-                } else {
-                  displayIdentifyResult(layerId, layerName, layerConfig, result);
-                }
+                displayIdentifyResult(layerId, layerName, layerConfig, result);
               }
             });
           }
@@ -1613,10 +1591,6 @@ function runIdentifies(evt) {
       if (idLayer.layerConfig.CQL_FILTER !== undefined){
         data['CQL_FILTER'] = idLayer.layerConfig.CQL_FILTER;
       }
-
-      if (idLayer.layerConfig.styles !== undefined){
-        data['styles'] = idLayer.layerConfig.styles;
-      }
       var url = idLayer.layerConfig.url;
 
       $.when(
@@ -1641,40 +1615,13 @@ function runIdentifies(evt) {
 
                 var layerName = layerConfig.name || layerConfig.id || "unknown layer";
 
-                if (bootleaf.identifyResponse[layerId] === undefined){
-                  bootleaf.identifyResponse[layerId] = {
-                    "config": layerConfig
-                  };
-                }
-
                 for (var j = 0; j<data.features.length; j++){
                   var result = data.features[j];
                   result.layerId = layerId;
                   result.layerName = layerName;
                   result.attributes = result.properties;
-                  if (data.crs !== undefined && data.crs.properties !== undefined && data.crs.properties.name !== undefined){
-                    result.crs = data.crs.properties.name;
-                  }
-                  var value = JSON.stringify(result.attributes);
-                  if (bootleaf.identifyResponse[layerId][value] === undefined) {
-                    if (layerConfig.identify.maxFeatures !== undefined){
-                      if (bootleaf.identifyCounter[layerName] === undefined) {
-                        bootleaf.identifyCounter[layerName] = 1;
-                      } else {
-                        bootleaf.identifyCounter[layerName] += 1;
-                      }
-                      if (bootleaf.identifyCounter[layerName] <= layerConfig.identify.maxFeatures) {
-                        bootleaf.identifyResponse[layerId][value] = value;
-                        displayIdentifyResult(layerId, layerName, layerConfig, result);
-                      }
-                    } else if (bootleaf.identifyResponse[layerId][value] !== value){
-                      bootleaf.identifyResponse[layerId][value] = value;
-                      displayIdentifyResult(layerId, layerName, layerConfig, result);
-                    }
-                  } else if (bootleaf.identifyResponse[layerId][JSON.stringify(result.attributes)] === undefined) {
-                      bootleaf.identifyResponse[layerId][value] = value;
-                      displayIdentifyResult(layerId, layerName, layerConfig, result);
-                  }
+
+                  displayIdentifyResult(layerId, layerName, layerConfig, result);
 
                 }
 
@@ -1702,27 +1649,17 @@ function displayIdentifyResult(layerId, layerName, layerConfig, result){
   }
 
   // Store the relevant details for this result against the identifyResponse object
-  var geometryType;
-  if (result.geometryType !== undefined) {
-    geometryType = result.geometryType;
-  } else if (result.geometry.type !== undefined) {
-    geometryType = result.geometry.type;
-  }
   var outFeature = {
     "geometry": result.geometry,
     "attributes": [],
-    "geometryType": geometryType
-  }
-
-  if (result.crs !== undefined) {
-    outFeature.geometry.crs = result.crs;
+    "geometryType": result.geometryType
   }
 
   bootleaf.wantedFields = [];
   if(layerConfig.identify.primaryField) {
     bootleaf.wantedFields.push(layerConfig.identify.primaryField);
   }
-  var outFields = [];
+  var outFields;
   if (layerConfig.identify.outFields !== undefined) {
     outFields = layerConfig.identify.outFields;
   } else if(layerConfig.outFields !== undefined) {
@@ -1731,7 +1668,7 @@ function displayIdentifyResult(layerId, layerName, layerConfig, result){
   if (outFields.length > 0) {
     Object.keys(outFields).map(function(i, field){
       bootleaf.wantedFields.push(outFields[field]['name']);
-    });                
+    });
   }
   for(var field in result.attributes){
     if (bootleaf.wantedFields.indexOf(field) > -1) {
@@ -1765,19 +1702,19 @@ function displayIdentifyResult(layerId, layerName, layerConfig, result){
   output += "</li>";
   $("#" + layerConfig.id).html(output);
 
-  // When clicking on the Identify result, use the guid to determine the 
+  // When clicking on the Identify result, use the guid to determine the
   $(".identifyResult").on("click", function(evt) {
     $(".identifyResult").removeClass("active");
     $(this).addClass("active");
     var feature = bootleaf.identifyResponse[this.dataset['guid']];
-    showHighlight(feature, true);                  
+    showHighlight(feature, true);
   });
   $(".identifyResult").on("mouseover", function(evt) {
     var feature = bootleaf.identifyResponse[this.dataset['guid']];
-    showHighlight(feature, false);                  
+    showHighlight(feature, false);
   });
   $(".identifyResult").on("mouseout", function() {
-    bootleaf.map.removeLayer(bootleaf.highlightLayer);                 
+    bootleaf.map.removeLayer(bootleaf.highlightLayer);
   });
 }
 
@@ -1869,8 +1806,6 @@ function showHighlight(feature, zoom){
   var wkid = bootleaf.mapWkid;
   if (feature.geometry.spatialReference && feature.geometry.spatialReference.wkid){
     wkid = feature.geometry.spatialReference.wkid;
-  } else if (feature.geometry.crs !== undefined) {
-    wkid = feature.geometry.crs.substr(feature.geometry.crs.length - 4);
   }
   var jsonGeometry;
 
@@ -1889,25 +1824,16 @@ function showHighlight(feature, zoom){
       "type": "Polygon",
       "coordinates": geometry.rings
     };
-  } else if (geometryType === "Polygon") {
+  } else if (geometryType === "MultiPolygon" || geometryType === "Polygon") {
+    // TODO - the below code only fetches the first polygon object. Figure out how to fetch all
     jsonGeometry = {
       "type": "Polygon",
-      "coordinates": geometry.coordinates
-    };
-  } else if (geometryType === "MultiPolygon") {
-   jsonGeometry = {
-      "type": "MultiPolygon",
-      "coordinates": geometry.coordinates
+      "coordinates": geometry.coordinates[0]
     };
   } else if (geometryType === 'esriGeometryPolyline') {
     jsonGeometry = {
       "type": "LineString",
       "coordinates": [geometry.paths[0]]
-    };
-  } else if (geometryType === 'MultiLineString') {
-    jsonGeometry = {
-      "type": "LineString",
-      "coordinates": [geometry.coordinates[0]]
     };
   }
 
@@ -1931,7 +1857,7 @@ function showHighlight(feature, zoom){
   bootleaf.highlightLayer.addTo(bootleaf.map);
 
   if (zoom){
-    // Generate a popup from the attribute information  
+    // Generate a popup from the attribute information
     var popup = "<table class='table table-condensed'>";
     for (field in feature.attributes){
       var value = feature.attributes[field];
@@ -1974,7 +1900,7 @@ function configureShare(){
   var params = ""
   for (key in bootleaf.shareObj){
     var separator;
-    params.indexOf("?") < 0 ? separator = "?" : separator = "&"; 
+    params.indexOf("?") < 0 ? separator = "?" : separator = "&";
     params += separator + key + "=" + bootleaf.shareObj[key];
   }
 
@@ -2058,15 +1984,6 @@ function updateTOCcheckboxes(){
 
 // Handle WFS layers
 function fetchWFS(){
-
-  // Clear any WFS label layers (geoJSON label layers aren't reset on pan/zoom)
-  for (var i=0; i<bootleaf.labelLayers.length; i++){
-    var labelLayer = bootleaf.labelLayers[i];
-    if (labelLayer.layerConfig.type === 'WFS'){
-      labelLayer.clearLayers();
-    }
-  }
-
   for (var j=0; j < bootleaf.wfsLayers.length; j++){
     var layer = bootleaf.wfsLayers[j];
     var layerConfig = layer.layerConfig;
@@ -2074,10 +1991,11 @@ function fetchWFS(){
       var elapsed = Date.now() - layer.lastRun;
       if (elapsed < 500) {
         console.log("sequential WFS requests are appearing too soon - rate limiting");
-      } else if (layer.tocState === "on"){
-        wfsAjax(layer);
+        return;
       }
-    } else if (layer.tocState === "on"){
+    }
+
+    if (layer.tocState === "on"){
       wfsAjax(layer);
     }
   }
@@ -2160,13 +2078,7 @@ function wfsAjax(layer){
             layer.addData(data);
             layer.lastRun = null;
           }
-
-          // Display labels if configured for this layer
-          if (layer.layerConfig.label !== undefined){
-            createLabels(layer.layerConfig, data)
-          }
         }
-
       }
     },
     error: function(err){
@@ -2176,43 +2088,6 @@ function wfsAjax(layer){
       }
     }
   });
-    
-}
-
-function createLabels(layerConfig, data){
-  // Create labels for WFS and GeoJSON layers
-  try{
-
-    // De-duplicate any coincident labels
-    // TODO: take into account the current map scale and perform some rudimentary collision avoidance
-    var newData = {
-      features: [],
-      latLngs: []
-    };
-    for(var j=0; j<data.features.length; j++){
-      var feature = data.features[j];
-      var lat = feature.geometry.coordinates[0];
-      var lng = feature.geometry.coordinates[1];
-      var latLng = lat + "|" + lng;
-      if (newData.latLngs.indexOf(latLng) === -1) {
-        newData.latLngs.push(latLng);
-        // Manually force the creation of the label attribute, specified in the layerConfig.layer.name variable
-        feature.properties["_xxxLabelText"] = feature.properties[layerConfig.label.name];
-        newData.features.push(feature);
-      }
-    }
-
-    for (var i=0; i<bootleaf.labelLayers.length; i++){
-      var labelLayer = bootleaf.labelLayers[i];
-      if (bootleaf.labelLayers[i].layerConfig.id === layerConfig.id + "_labels"){
-          labelLayer.addData(newData);
-          labelLayer.lastRun = Date.now();
-          labelLayer.lastBounds = bootleaf.map.getBounds().toBBoxString();
-      }
-    }
-  } catch(err){
-    console.log("There was a problem generating labels for ", layerConfig.id);
-  }
 
 }
 
@@ -2242,63 +2117,4 @@ function round(value, decimals) {
   }
 }
 
-function allLayersOn(){
-  $.map( bootleaf.layers, function( layer, i ) {
-    var addLayer = true;
-    var layerConfig = layer.layerConfig;
-    var currentZoom = bootleaf.map.getZoom();
-    if (layerConfig.minZoom && currentZoom < layerConfig.minZoom) {
-      addLayer = false;
-    }
-    if (layerConfig.maxZoomLevel && currentZoom > layerCOnfig.maxZoom) {
-      addLayer = false;
-    }
-    if (addLayer){
-      layer.addTo(bootleaf.map);
-    } else {
-      layer.outsideScaleThreshold = true;
-    }
-  });
-  updateTOCcheckboxes();
-}
 
-function allLayersOff(){
-  bootleaf.map.eachLayer(function(layer){
-    if (layer.layerConfig !== undefined) {
-      bootleaf.map.removeLayer(layer);
-    }
-  });
-  updateTOCcheckboxes();
-}
-
-function buildLabelLayer(layerConfig) {
-  var labelLayer = L.geoJSON(null, {
-    pointToLayer: function(feature,latlng){
-      // _xxxLabelText is calculated once the values are returned from the server. This is a deliberately
-      // obscure variable name in the hope that it doesn't already exist on the layer ;)
-      label = String(feature.properties._xxxLabelText)
-      return new L.CircleMarker(latlng, {
-        radius: 0,
-        opacity: 0
-      }).bindTooltip(label, {permanent: true, opacity: 0.7}).openTooltip();
-    }
-  });
-  labelLayer.layerConfig = Object.assign({}, layerConfig);
-  labelLayer.layerConfig.labelLayer = true;
-  if (layerConfig.label.minZoom !== undefined){
-    labelLayer.layerConfig.minZoom = layerConfig.label.minZoom;
-  }
-  if (layerConfig.label.maxZoom !== undefined){
-    labelLayer.layerConfig.maxZoom = layerConfig.label.maxZoom;
-  }
-  if (labelLayer.layerConfig.name !== undefined) {
-    labelLayer.layerConfig.name += " labels";
-  } else {
-    labelLayer.layerConfig.name = labelLayer.layerConfig.id + " labels";
-  }
-  labelLayer.layerConfig.id += "_labels";
-  addLayer(labelLayer); 
-  bootleaf.labelLayers.push(labelLayer);
-  bootleaf.layers.push(labelLayer);
-
-}

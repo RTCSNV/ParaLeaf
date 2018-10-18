@@ -15,7 +15,7 @@ if ( !("ontouchstart" in window) ) {
   $(document).on("click", ".feature-row", function(e) {
     bootleaf.map.removeLayer(bootleaf.highlightLayer);
 
-    // Retrieve the feature's geometry from the queryResults dict, then send it to the 
+    // Retrieve the feature's geometry from the queryResults dict, then send it to the
     // showHighlight function. Tweak the parameters to match the identifyResults format
     try{
       var feature = bootleaf.queryResults[parseInt(e.target.dataset['idx'])];
@@ -31,7 +31,7 @@ if ( !("ontouchstart" in window) ) {
       feature.geometryType = bootleaf.queryResults.geometryType;
       feature.geometry['spatialReference']= {"wkid": bootleaf.queryResults.wkid};
       showHighlight(feature, true);
-      
+
     } catch(err) {
       if(err.message !== undefined){
         console.log(err.message);
@@ -49,14 +49,14 @@ $(document).on("mouseout", ".feature-row", function(e){
 $(document).on("mouseover", ".feature-row", function(e){
   bootleaf.map.removeLayer(bootleaf.highlightLayer);
 
-  // Retrieve the feature's geometry from the queryResults dict, then send it to the 
+  // Retrieve the feature's geometry from the queryResults dict, then send it to the
   // showHighlight function. Tweak the parameters to match the identifyResults format
   try{
     var feature = bootleaf.queryResults[parseInt(e.target.dataset['idx'])];
     feature.geometryType = bootleaf.queryResults.geometryType;
     feature.geometry['spatialReference']= {"wkid": bootleaf.queryResults.wkid};
     showHighlight(feature, false);
-    
+
   } catch(err) {
     if(err.message !== undefined){
       console.log(err.message);
@@ -106,16 +106,16 @@ $("#share-btn").click(function() {
     shareURL = hostname + ":" + port + path + params;
   } else {
     shareURL = hostname + path + params;
-  }   
+  }
   $("#shareURL").html("<a target='_blank' href=" + shareURL+ ">Link to this map</a>");
   $("#shareModal").modal("show");
   $(".navbar-collapse.in").collapse("hide");
 });
 
-$("#list-btn").click(function() {
-  animateSidebar();
-  return false;
-});
+//$("#list-btn").click(function() {
+//  animateSidebar();
+//  return false;
+//});
 
 $("#nav-btn").click(function() {
   $(".navbar-collapse").collapse("toggle");
@@ -129,10 +129,45 @@ $("#sidebar-toggle-btn").click(function() {
 
 $("#sidebar-hide-btn").click(function() {
   switchOffTools();
-  $(".liMapTools").removeClass("active"); 
+  $(".liMapTools").removeClass("active");
   animateSidebar();
   return false;
 });
+
+//=====================================
+//    my listeners
+//=====================================
+
+$("#fvehicle-btn").click(function() {
+   // $(".navbar-collapse.in").collapse("hide");
+    configureVehicleTool();
+    return false;
+});
+
+$("#fcustomer-btn").click(function() {
+//    $(".navbar-collapse.in").collapse("hide");
+    configureCustomerTool();
+    return false;
+});
+
+$("#list-btn").click(function() {
+//    $(".navbar-collapse.in").collapse("hide");
+    configureVehicleList();
+    return false;
+});
+
+$(document).on('keyup', '#myInput', function() {
+    console.log('HERE!!');
+    var value = $(this).val().toLowerCase();
+    console.log('--->' + value);
+    $("#myList a").filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+});
+
+//=====================================
+//  end my listeners
+//=====================================
 
 function animateSidebar() {
   switchOffTools();
@@ -193,9 +228,9 @@ $(".mapTools").click(function(){
       } else if (this.dataset["tool"] === 'queryWidget') {
         configureQueryWidget();
       }
-    } else {
-      $("#sidebar").hide("slow");
     }
   }
   // return false; //uncomment this line to keep the menu open when a tool is chosen
 });
+
+
