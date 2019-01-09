@@ -1,3 +1,10 @@
+ParaLeaf
+========
+
+ParaLeaf was forked from [iag-geo/bootleaf] (https://github.com/iag-geo/bootleaf). It displays Paratransit vehicle locations,
+historical locations and client history (pick-up / drop-off).  It also allows the user to set alerts (email) to be
+notified when a vehicle has returned to the garage.
+
 BootLeaf
 ========
 
@@ -69,11 +76,11 @@ The format of this file is JSON, which uses key/value pairs holding parameters a
 ```
 "title": "Bootleaf template map",
 "start": {
-	"center": [42, -85],
-	"zoom": 5,
-	"attributionControl": false,
-	"zoomControl": false,
-	"layers": []
+    "center": [42, -85],
+    "zoom": 5,
+    "attributionControl": false,
+    "zoomControl": false,
+    "layers": []
 }
 ```
 
@@ -87,21 +94,21 @@ When editing these values, ensure that the key *names* are quoted. *Textual valu
 - `bing_key` : a license key to use [Bing Maps basemap tiles](https://msdn.microsoft.com/en-us/library/ff428642.aspx)
 - `mapboxKey` : a license key to use [MapBox basemap tiles](https://www.mapbox.com/help/how-access-tokens-work/)
 - `controls` : used to configure individual map controls. If a control is commented out, it will not be shown. Valid positions are *topleft*, *topright*, *bottomleft*, *bottomright*
-	- `zoom` : specify the location of the zoom in/out buttons
-	- `leafletGeocoder` : configure the [geocoder](https://github.com/perliedman/leaflet-control-geocoder)
-		- `type`: `Google/OpenStreetMap/ArcGIS`
-		- `suffix`: an optional keyword to filter each search. eg, use "Australia" to tell the geocoder to search within Australia only
-	- `TOC` : configure the default [table of contents](https://github.com/ismyrnow/Leaflet.groupedlayercontrol) (see below for further configuration options)
-	- `history` : display next/previous buttons on the map, to enable moving forward/back through the extent history
-	- `bookmarks` : spatial bookmarks may be saved to the config file, or added via the UI. In the latter case they're accessible via cookies on the current user's machine. Follow the pattern of the sample bookmarks to create new instances
+    - `zoom` : specify the location of the zoom in/out buttons
+    - `leafletGeocoder` : configure the [geocoder](https://github.com/perliedman/leaflet-control-geocoder)
+        - `type`: `Google/OpenStreetMap/ArcGIS`
+        - `suffix`: an optional keyword to filter each search. eg, use "Australia" to tell the geocoder to search within Australia only
+    - `TOC` : configure the default [table of contents](https://github.com/ismyrnow/Leaflet.groupedlayercontrol) (see below for further configuration options)
+    - `history` : display next/previous buttons on the map, to enable moving forward/back through the extent history
+    - `bookmarks` : spatial bookmarks may be saved to the config file, or added via the UI. In the latter case they're accessible via cookies on the current user's machine. Follow the pattern of the sample bookmarks to create new instances
 - `activeTool` : a tool may optionally be configured as active when the map loads. Current options are `identify`, `queryWidget` (see below for more info) and `coordinate` (which reports the coordinates at the location clicked on the map)
 - `defaultIcon` : optionally, override the [default icon](http://leafletjs.com/reference-1.1.0.html#icon-default) which is a blue pin, for example to specify an alternate image, or to change the size and shape of the pin. This icon is used in the geocoding result display amongst other areas
 - `projections` - an array of [proj4js](http://proj4js.org/) projection definitions, which are used when projecting coordinates from other reference systems onto the map. Determine each layer's projection, then look up the details at http://spatialreference.org/. Add each layer's WKID to the `projections` array in the format:
 
 ```
 "projections": [
-	{wkid: 'proj 4 projection parameters from spatialreference.org'},
-	{4269: '+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs '}
+    {wkid: 'proj 4 projection parameters from spatialreference.org'},
+    {4269: '+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs '}
 ]
 ```
 - `showIdentifyMarker` : `true/false` - when true, the location clicked on the map is shown in a popup. Default is true.
@@ -153,10 +160,10 @@ To begin adding layers, find the `"layers": []` section of the config file, and 
 
 ```
 {
-	"id": "a unique ID for this layer",
-	"name": "the name, which will appear in the Table of Contents",
-	"type": "layer type (see 'Supported layer types' below)",
-	"url": "layer URL"
+    "id": "a unique ID for this layer",
+    "name": "the name, which will appear in the Table of Contents",
+    "type": "layer type (see 'Supported layer types' below)",
+    "url": "layer URL"
 }
 ```
 
@@ -195,12 +202,12 @@ There are various locations throughout Bootleaf (such as popups, Identify and Qu
 
 ```
 "outFields": [
-	{"name": "NAME", "alias": "Name"},
-	{"name": "POP", "alias": "Population", "thousands": true},
-	{"name": "AREASQKM", "alias": "Area (sq km)", "decimals": 2},
-	{"name": "si", "alias": "Sum Insured", "decimals": 0, "prefix": "$"},
-	{"name": "startdate", "alias": "Start Date", "date": true},
-	{"name": "OBJECTID", "hidden": true}
+    {"name": "NAME", "alias": "Name"},
+    {"name": "POP", "alias": "Population", "thousands": true},
+    {"name": "AREASQKM", "alias": "Area (sq km)", "decimals": 2},
+    {"name": "si", "alias": "Sum Insured", "decimals": 0, "prefix": "$"},
+    {"name": "startdate", "alias": "Start Date", "date": true},
+    {"name": "OBJECTID", "hidden": true}
 ]
 ```
 
@@ -237,15 +244,15 @@ Include `TOC` in the `controls` section to enable this option. By default the TO
 
 ```
 "tocCategories": [
-	{
-		"name": "Group name 1",
-		"layers" : ["layerID1","layerID2"],
-		"exclusive": true
-	},
-	{
-		"name": "Group name 2",
-		"layers": ["layerID3","layerID4"]
-	}
+    {
+        "name": "Group name 1",
+        "layers" : ["layerID1","layerID2"],
+        "exclusive": true
+    },
+    {
+        "name": "Group name 2",
+        "layers": ["layerID3","layerID4"]
+    }
 ],
 "toggleAll": true
 ```
@@ -268,18 +275,18 @@ To enable this, add the `identify` object as an option under a Dynamic or WMS la
 
 ```
 {
-	"id": "layerID",
-	"type": "agsDynamicLayer",
-	"identify": {
-		"layerName": "the layer name in the ArcGIS Server REST API",
-		"layerLabel": "the layer name to display in the Results dialog",
-		"primaryField": "the field on which to report",
-		"outFields": [
-			{"name": "field_name", "alias": "Field Alias", "prefix": "$"},
-			{"name": "field alias", "thousands": true, "decimals": 2}
-		],
-	},
-	"maxAllowableOffset": 0.01
+    "id": "layerID",
+    "type": "agsDynamicLayer",
+    "identify": {
+        "layerName": "the layer name in the ArcGIS Server REST API",
+        "layerLabel": "the layer name to display in the Results dialog",
+        "primaryField": "the field on which to report",
+        "outFields": [
+            {"name": "field_name", "alias": "Field Alias", "prefix": "$"},
+            {"name": "field alias", "thousands": true, "decimals": 2}
+        ],
+    },
+    "maxAllowableOffset": 0.01
 }
 ```
 
@@ -303,18 +310,18 @@ To enable this, add the `queryWidget` object as an option under an ArcGIS Dynami
 
 ```
 "queryWidget": {
-	"layerIndex": 0,
-	"maxAllowableOffset": 0.001,
-	"queries" : [
-		{"name": "NAME", "alias": "Name", "defaultOperator": "contains"},
-		{"name": "POP", "alias": "Population", "type": "numeric"}
-	],
-	"outFields": [
-		{"name": "NAME", "alias": "Name"},
-		{"name": "POP", "alias": "Population", "thousands": true},
-		{"name": "AREASQKM", "alias": "Area (sq km)", "decimals": 2},
-		{"name": "OBJECTID", "hidden": true}
-	]
+    "layerIndex": 0,
+    "maxAllowableOffset": 0.001,
+    "queries" : [
+        {"name": "NAME", "alias": "Name", "defaultOperator": "contains"},
+        {"name": "POP", "alias": "Population", "type": "numeric"}
+    ],
+    "outFields": [
+        {"name": "NAME", "alias": "Name"},
+        {"name": "POP", "alias": "Population", "thousands": true},
+        {"name": "AREASQKM", "alias": "Area (sq km)", "decimals": 2},
+        {"name": "OBJECTID", "hidden": true}
+    ]
 }
 ```
 
@@ -325,8 +332,8 @@ To enable this, add the `queryWidget` object as an option under an ArcGIS Dynami
 - `queries` - an array of query objects, consisting of:
   - `name` - the name of the field to query
   - `alias` - an optional alias to display in the widget
-	- `type` - defaults to text, or use `numeric` to allow the correct syntax for numerical fields. Other field types may be added in future.
-	- `defaultOperator` - the default optional query operator for this query. Options are "=", "starts with", "ends with", "contains", "<", ">"
+    - `type` - defaults to text, or use `numeric` to allow the correct syntax for numerical fields. Other field types may be added in future.
+    - `defaultOperator` - the default optional query operator for this query. Options are "=", "starts with", "ends with", "contains", "<", ">"
 - `outFields` - the list of field objectss to be returned in the query results section. If `outFields` is not specified against the `queryWidget` object, the layer's `outFields` will be used. See the `outFields` section above for more information on the field specification.
 
 Use the Within Current Map Extent or Within Polygon options to restrict the query to the specified extent. Use the Download As CSV option to download the results for processing in Excel.
